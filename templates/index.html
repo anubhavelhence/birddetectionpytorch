@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bird Classifier</title>
+</head>
+<body>
+    <nav>
+        <!-- Navigation Bar -->
+        <a href="/">Home</a>
+    </nav>
+
+    <h1>Bird Classifier</h1>
+    <p>This is a project for classifying birds.</p>
+    <button onclick="classifyBird()">Classify Bird</button>
+
+    <script>
+    function classifyBird() {
+        fetch('/predict', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: 'https://raw.githubusercontent.com/nicolalandro/ntsnet-cub200/master/images/nts-net.png' }),
+        })
+        .then(response => response.json())
+        .then(data => alert('Bird class is: ' + data.bird_class));
+    }
+    </script>
+</body>
+</html>
