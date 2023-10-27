@@ -1,0 +1,14 @@
+/* styles.css */
+
+/* Add animation and hover effects for the navigation bar */
+.navbar-nav .nav-link {
+    transition: all 0.3s ease;
+  }
+  
+  .navbar-nav .nav-link:hover {
+    color: #007bff !important;
+    transform: scale(1.1);
+  }
+  
+  /* Additional styles here */
+  

@@ -1,14 +1,19 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 import torch
 from PIL import Image
 from torchvision import transforms
 import urllib
 from flask_cors import CORS
+from pymongo import MongoClient
+
 
 
 app = Flask(__name__)
 CORS(app)
 
+client = MongoClient("mongodb://localhost:27017/")
+db = client['bird_database']
+bird_collection = db['birds']
 
 # Initialize your model here
 model = torch.hub.load('nicolalandro/ntsnet-cub200', 'ntsnet', pretrained=True,
@@ -45,6 +50,10 @@ def predict():
 def bird_classes():
     return render_template('bird_classes.html')
 
+@app.route('/debug_route')
+def debug_route():
+    return render_template('debug_route.html')
+
 @app.route('/new_bird', methods=['GET', 'POST'])
 def new_bird():
     if request.method == 'POST':
@@ -59,7 +68,7 @@ def new_bird():
         }
 
         bird_collection.insert_one(bird_data)
-        return redirect(url_for('index'))
+        return redirect(url_for('bird_classes'))
 
     return render_template('new_bird.html')
 
