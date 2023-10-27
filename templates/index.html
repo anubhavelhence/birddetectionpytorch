@@ -11,19 +11,53 @@
 
     <h1>Bird Classifier</h1>
     <p>This is a project for classifying birds.</p>
-    <button onclick="classifyBird()">Classify Bird</button>
+
+    <!-- Image Upload Button -->
+    <input type="file" id="imageUpload" accept="image/*">
+    <button onclick="uploadAndClassify()">Upload and Classify</button>
+    <br>
+
+    <!-- Display the Uploaded Image -->
+    <img id="uploadedImage" style="max-width: 500px;">
+    <br>
+
+    <!-- Display the Prediction Result -->
+    <p id="result"></p>
 
     <script>
-    function classifyBird() {
-        fetch('/predict', {
+    async function uploadAndClassify() {
+        const imageUpload = document.getElementById('imageUpload').files[0];
+        const formData = new FormData();
+        formData.append('image', imageUpload);
+
+        // Upload to Imgur
+        const imgurResponse = await fetch('https://api.imgur.com/3/image', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Client-ID fff5e68c6b25399'
+            },
+            body: formData
+        });
+
+        const imgurData = await imgurResponse.json();
+        const imageUrl = imgurData.data.link;
+
+        // Display the Uploaded Image
+        document.getElementById('uploadedImage').src = imageUrl;
+
+        // Classify the Uploaded Image
+        const classifyResponse = await fetch('/predict', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ url: 'https://raw.githubusercontent.com/nicolalandro/ntsnet-cub200/master/images/nts-net.png' }),
-        })
-        .then(response => response.json())
-        .then(data => alert('Bird class is: ' + data.bird_class));
+            body: JSON.stringify({ url: imageUrl }),
+        });
+
+        const classifyData = await classifyResponse.json();
+
+        // Display the Prediction Result
+        document.getElementById('result').innerText = "Bird class is: " + classifyData.bird_class;
     }
     </script>
 </body>

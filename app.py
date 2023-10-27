@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import torch
 from PIL import Image
 from torchvision import transforms
-import 
+import urllib
 from flask_cors import CORS
 
 
@@ -41,7 +41,27 @@ def predict():
         
     return jsonify({'bird_class': model.bird_classes[pred_id]})
 
+@app.route('/bird_classes')
+def bird_classes():
+    return render_template('bird_classes.html')
 
+@app.route('/new_bird', methods=['GET', 'POST'])
+def new_bird():
+    if request.method == 'POST':
+        bird_name = request.form.get('name')
+        bird_image = request.form.get('image')
+        bird_rarity = request.form.get('rarity')
+
+        bird_data = {
+            'name': bird_name,
+            'image': bird_image,
+            'rarity': bird_rarity
+        }
+
+        bird_collection.insert_one(bird_data)
+        return redirect(url_for('index'))
+
+    return render_template('new_bird.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
