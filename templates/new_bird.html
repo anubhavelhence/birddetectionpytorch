@@ -34,14 +34,23 @@
 
     <h1>Add a New Bird</h1>
     <form method="POST">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required><br>
+        <label for="classNumber">Class Number:</label>
+        <input type="number" id="classNumber" name="classNumber" required><br>
 
-        <label for="image">Image URL:</label>
-        <input type="text" id="image" name="image" required><br>
+        <label for="species">Species Name:</label>
+        <input type="text" id="species" name="species" required><br>
 
-        <label for="rarity">Rarity:</label>
-        <input type="text" id="rarity" name="rarity" required><br>
+        <label for="speciesCode">Species Code:</label>
+        <input type="text" id="speciesCode" name="speciesCode" required><br>
+
+        <label for="speciesUrl">Species URL:</label>
+        <input type="url" id="speciesUrl" name="speciesUrl" required><br>
+
+        <label for="speciesPhoto">Species Photo URL:</label>
+        <input type="url" id="speciesPhoto" name="speciesPhoto" required><br>
+
+        <label for="loc">location:</label>
+        <input type="text" id="loc" name="loc" required><br>
 
         <input type="submit" value="Submit">
     </form>

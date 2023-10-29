@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for,render_template_string
 import torch
 from PIL import Image
 from torchvision import transforms
 import urllib
 from flask_cors import CORS
 from pymongo import MongoClient
+import requests
+
 
 
 
@@ -48,29 +50,79 @@ def predict():
 
 @app.route('/bird_classes')
 def bird_classes():
-    return render_template('bird_classes.html')
+    birds = list(bird_collection.find({}))
+    
+    return render_template('bird_classes.html', birds=birds)
 
 @app.route('/debug_route')
 def debug_route():
-    return render_template('debug_route.html')
+    # return render_template('debug_route.html')
+    url = "https://ebird.org/species/layalb" # Replace with the URL you want to capture
+    response = requests.get(url)
+    page_content = response.text
+
+    return render_template_string('<html><body>{{ content|safe }}</body></html>', content=page_content)
+
 
 @app.route('/new_bird', methods=['GET', 'POST'])
 def new_bird():
     if request.method == 'POST':
-        bird_name = request.form.get('name')
-        bird_image = request.form.get('image')
-        bird_rarity = request.form.get('rarity')
+        # class_number = int(request.form.get('classNumber'))
+        class_number = request.form.get('classNumber')
+
+        species_name = request.form.get('species')
+        species_code = request.form.get('speciesCode')
+        species_url = request.form.get('speciesUrl')
+        species_photo = request.form.get('speciesPhoto')
+        loc = request.form.get('loc')
+
 
         bird_data = {
-            'name': bird_name,
-            'image': bird_image,
-            'rarity': bird_rarity
+            'ClassNumber': class_number,
+            'Species': species_name,
+            'Speciescode': species_code,
+            'SpeciesUrl': species_url,
+            'SpeciesPhoto': species_photo,
+            'Loc': loc
         }
 
-        bird_collection.insert_one(bird_data)
+        print(bird_data)
+
+        result = bird_collection.insert_one(bird_data)
+
+        # Verify if the document was inserted
+        if result.acknowledged:
+            print(f"Successfully inserted document with _id: {result.inserted_id}")
+        else:
+            print("Failed to insert document")
         return redirect(url_for('bird_classes'))
 
     return render_template('new_bird.html')
+
+@app.route('/get_bird_metadata', methods=['GET'])
+def get_bird_metadata():
+    species_name = request.args.get('species')
+    
+    print(species_name)
+    bird = bird_collection.find_one({"Species": species_name})
+    print(bird)
+    if bird:
+        bird_dict = dict(bird)  # Convert to Python dictionary
+        bird_dict.pop('_id', None)  # Remove the _id field
+        print(bird_dict)
+        return jsonify(bird_dict)  # Serialize and send as JSON
+    else:
+        return jsonify({"error": "Bird not found"}), 404
+
+
+@app.route('/capture', methods=['GET'])
+def capture():
+    speciescode = request.args.get('speciescode')
+    url = "https://ebird.org/species/" + str(speciescode)
+    print(url)
+    response = requests.get(url)
+    page_content = response.text
+    return jsonify({"content": page_content, "url":url})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

@@ -5,25 +5,97 @@
     <meta charset="UTF-8">
     <title>Bird App</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"> <!-- Your custom CSS file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <style>
-        /* Always set the map height explicitly to define the size of the div
-         * element that contains the map. */
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        h1,
+        h2 {
+            color: #343a40;
+        }
+
+        nav {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Map Styles */
         #map {
-          height: 400px; /* You can set the height as needed */
-          width: 100%;
+            height: 400px;
+            width: 100%;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            margin-top: 20px;
         }
-        /* Optional: Makes the sample page fill the window. */
-        html, body {
-          height: 80%;
-          margin: 0;
-          padding: 0;
+
+        /* Button Styles */
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
         }
-        h1 {
-          text-align: center;
+
+        /* Image Styles */
+        #uploadedImage {
+            max-width: 500px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
         }
-      </style>
+
+        /* Metadata Styles */
+        #metadata {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #result {
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+    <style>
+        /* Add your existing styles here */
+
+        /* Styling for the result */
+        #result {
+            font-size: 24px;
+            color: blue;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+
+        /* Animation */
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        #result.show {
+            animation: slideIn 1s ease-out;
+            opacity: 1;
+        }
+    </style>
 </head>
+
 
 <body>
 
@@ -50,26 +122,36 @@
             </ul>
         </div>
     </nav>
-    <h1>Bird Classifier</h1>
-    <p>This is a project for classifying birds.</p>
+    <div class="container mt-5">
+        <h1>Bird Classifier</h1>
+        <p>This is a project for classifying birds.</p>
 
-    <!-- Image Upload Button -->
-    <input type="file" id="imageUpload" accept="image/*">
-    <button onclick="uploadAndClassify()">Upload and Classify</button>
-    <br>
-
-    <!-- Display the Uploaded Image -->
-    <img id="uploadedImage" style="max-width: 500px;">
-    <br>
-
-    <!-- Display the Prediction Result -->
-    <p id="result"></p>
-
-    <div id="map"></div>
+        <!-- Image Upload Button -->
+        <input type="file" id="imageUpload" accept="image/*">
+        <button onclick="uploadAndClassify()">Upload and Classify</button>
+        <br>
 
 
+        <!-- Display the Uploaded Image -->
+        <img id="uploadedImage" style="max-width: 500px;">
+        <br>
 
+        <!-- Display the Prediction Result -->
+        <p id="result"></p>
+        <p id="metadata"></p>
+
+
+
+        <div id="map" style="display: none;"></div>
+
+        <div id="scrapedContent" onclick="openNewTab()" style="cursor: pointer; display: none;"></div>
+
+    </div>
     <script>
+        var map, heatmap, metadataLoc;
+        var gurl = 'https://ebird.org/explore';
+        let firstCoordinate, secondCoordinate, thirdCoordinate ;
+
         async function uploadAndClassify() {
             const imageUpload = document.getElementById('imageUpload').files[0];
             const formData = new FormData();
@@ -103,20 +185,119 @@
 
             // Display the Prediction Result
             document.getElementById('result').innerText = "Bird class is: " + classifyData.bird_class;
+            document.getElementById('result').classList.add('show');
+
+
+            const fullBirdClass = classifyData.bird_class; // e.g. "001.Black_footed_Albatross"
+            const speciesName = fullBirdClass.split('.')[1].replace(/_/g, '_'); // replace underscores with spaces
+
+            const metadataResponse = await fetch(`/get_bird_metadata?species=${speciesName}`);
+            const metadata = await metadataResponse.json();
+
+            const speciescode = metadata.Speciescode;
+
+
+            // Create a string of HTML content for the metadata
+            let metadataHtml = '<h2>Bird Metadata:</h2>';
+            metadataHtml += `<p><strong>Class Number:</strong> ${metadata.ClassNumber}</p>`;
+            metadataHtml += `<p><strong>Species:</strong> ${metadata.Species}</p>`;
+            metadataHtml += `<p><strong>Species Code:</strong> ${metadata.Speciescode}</p>`;
+            metadataHtml += `<p><strong>Species URL:</strong> <a href="${metadata.SpeciesUrl}" target="_blank">${metadata.SpeciesUrl}</a></p>`;
+            metadataHtml += `<p><strong>Species Photo:</strong> ${imageUrl}</p>`;
+            metadataHtml += `<p><strong>Last Spotted Location :</strong> ${metadata.Loc}</p>`;
+
+            // Insert the metadata HTML content into the 'metadata' div
+            document.getElementById('metadata').innerHTML = metadataHtml;
+            // Assuming metadata.Loc contains the string "(34.56, -118.45) (34.57, -118.46) (34.58, -118.47)"
+            const metadataLoc = metadata.Loc;
+            // Split the metadataLoc string into individual coordinate strings
+            const coordinateStrings = metadataLoc.match(/\(([^)]+)\)/g);
+
+            // Initialize an array to store coordinate objects
+            const coordinates = [];
+
+            // Iterate through the coordinate strings and extract latitude and longitude
+            if (coordinateStrings) {
+                for (const coordinateString of coordinateStrings) {
+                    const [latitude, longitude] = coordinateString
+                        .replace(/[()]/g, "")
+                        .split(", ")
+                        .map(parseFloat);
+
+                    coordinates.push({ lat: latitude, lng: longitude });
+                }
+            }
+
+            // Now, coordinates array contains objects with lat and lng properties for each coordinate
+            console.log(coordinates);
+
+            // Access the latitude and longitude of the 1st, 2nd, and 3rd coordinates
+            if (coordinates.length >= 3) {
+                firstCoordinate = coordinates[0];
+                secondCoordinate = coordinates[1];
+                thirdCoordinate = coordinates[2];
+
+                console.log("1st Coordinate:", firstCoordinate);
+                console.log("2nd Coordinate:", secondCoordinate);
+                console.log("3rd Coordinate:", thirdCoordinate);
+
+                // You can use these coordinates to initialize your Google Map heatmap
+            } else {
+                console.log("Not enough coordinates in the metadata string.");
+            }
 
             // ----------------------------------------------------
+            // Initialize Google Map Heatmap
+            if (!map) {
+                map = new google.maps.Map(document.getElementById('map'), {
+                    zoom: 13,
+                    center: firstCoordinate,
+                    mapTypeId: 'satellite'
+                });
+            }
+
+            if (!heatmap) {
+                heatmap = new google.maps.visualization.HeatmapLayer({
+                    data: getPoints(),
+                    map: map
+                });
+            }
+
+            // Show the map
+            document.getElementById('map').style.display = 'block';
+
+            // Fetch the scraped content from Flask backend
+            const res = await fetch(`/capture?speciescode=${speciescode}`);
+            const data = await res.json();
+
+            gurl = data.url
+
+            document.getElementById('scrapedContent').innerHTML = data.content;
+            document.getElementById('scrapedContent').style.display = 'block';
+        }
+
+        async function openNewTab() {
+            window.open(gurl, '_blank');
+        }
+
+        // Heatmap data: 500 Points
+        function getPoints() {
+            return [
+                new google.maps.LatLng(firstCoordinate.lat, firstCoordinate.lng),
+                new google.maps.LatLng(secondCoordinate.lat, secondCoordinate.lng),
+                new google.maps.LatLng(thirdCoordinate.lat, thirdCoordinate.lng),
+                // Add more points here
+            ];
 
 
-            
             // ----------------------------------------------------
         }
     </script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script async
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAzAP5whVVoUezYYudqUr-Ww7I6CyTcf-k&libraries=visualization&callback=initMap">
-        </script>
+    <script async src="https://maps.googleapis.com/maps/api/js?key=&libraries=visualization&callback=initMap">
+    </script>
 </body>
 
 </html>
