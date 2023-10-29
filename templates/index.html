@@ -98,30 +98,45 @@
 
 
 <body>
+    <div class="postman-run-button"
+data-postman-action="collection/fork"
+data-postman-visibility="public"
+data-postman-var-1="23319025-7679dc3a-2359-45b7-9c09-025d895eb5e9"
+data-postman-collection-url="entityId=23319025-7679dc3a-2359-45b7-9c09-025d895eb5e9&entityType=collection&workspaceId=d1e4ec3e-45d6-469f-8b4d-33f4cd17da29"></div>
+<script type="text/javascript">
+  (function (p,o,s,t,m,a,n) {
+    !p[s] && (p[s] = function () { (p[t] || (p[t] = [])).push(arguments); });
+    !o.getElementById(s+t) && o.getElementsByTagName("head")[0].appendChild((
+      (n = o.createElement("script")),
+      (n.id = s+t), (n.async = 1), (n.src = m), n
+    ));
+  }(window, document, "_pm", "PostmanRunObject", "https://run.pstmn.io/button.js"));
+</script>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Bird App</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('home') }}">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('bird_classes') }}">Bird Classes</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('new_bird') }}">Add Bird</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('debug_route') }}">Debug Route</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">Bird App</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('bird_classes') }}">Bird Classes</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('new_bird') }}">Add Bird</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('debug_route') }}">Debug Route</a>
+            </li>
+        </ul>
+        <span class="navbar-text ml-auto" style=" font-weight: bold;">Coded with <span style="color: red;"">❤️</span>Anubhav Elhence</span>
+    </div>
+</nav>
     <div class="container mt-5">
         <h1>Bird Classifier</h1>
         <p>This is a project for classifying birds.</p>
