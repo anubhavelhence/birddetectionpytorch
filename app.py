@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for,render_template_string
+from flask import Flask, render_template, request, jsonify, redirect, url_for,render_template_string, abort
 import torch
 from PIL import Image
 from torchvision import transforms
@@ -6,6 +6,10 @@ import urllib
 from flask_cors import CORS
 from pymongo import MongoClient
 import requests
+import os
+from flask_httpauth import HTTPDigestAuth
+
+
 
 
 
@@ -13,7 +17,19 @@ import requests
 app = Flask(__name__)
 CORS(app)
 
-client = MongoClient("mongodb://localhost:27017/")
+
+
+# Replace with your actual API key
+API_KEY = 'DEADC0DE'
+
+
+
+# Get username, password, and database name from environment variables for security
+# MONGO_USER = os.getenv('MONGO_USER')
+# MONGO_PASS = os.getenv('MONGO_PASS')
+# MONGO_DB = os.getenv('MONGO_DB')
+
+client = MongoClient("mongodb://yourNewUsername:yourNewPassword@localhost:27017/")
 db = client['bird_database']
 bird_collection = db['birds']
 
@@ -123,6 +139,23 @@ def capture():
     response = requests.get(url)
     page_content = response.text
     return jsonify({"content": page_content, "url":url})
+
+@app.route('/data', methods=['GET'])
+def get_data():
+    # Extract the API Key from the request's headers
+    api_key = request.headers.get('x-api-key')
+    
+    # Check if the API key is valid
+    if api_key != API_KEY:
+        abort(401)  # Unauthorized access
+    
+    # Example data to return
+    data = {
+        'message': 'Access granted. Here is your data!',
+        'data': [1, 2, 3, 4, 5]
+    }
+    
+    return jsonify(data), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
